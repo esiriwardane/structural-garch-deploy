@@ -1,9 +1,9 @@
 function [ ...
   assetVariance, garchLeverageMultiplier, asset2Debt, deltaImplied, annualizedForecastVol, dLM_dtheta, ...
-  dhaDTheta] = core(param, ret, equity, debt, riskFree, tau, forecastType, equity2Debt)
+  dhaDTheta] = core(param, inputData, equity2Debt)
 %%%%%%%% HELPER FUNCTION FOR STRUCTURAL GARCH %%%%%%%%%
 
-  T = length(ret);
+  T = length(inputData.return);
 
   % Initialize parameters and construct matrices
   omega = param(1);
@@ -20,7 +20,7 @@ function [ ...
   %%% Compute unconditional daily variance and unconditional variance over
   %%% the life of the option %%%
   longRunVar = omega / (1 - archp - 0.5 * asymp - garchp);
-  lrVarOption = longRunVar * 252 * tau;
+  lrVarOption = longRunVar * 252 * inputData.tau;
   assetVariance = longRunVar * ones(T, 1);
 
   if longRunVar < 0 || isreal(longRunVar)==0
@@ -30,18 +30,18 @@ function [ ...
   %%% Run the recursion
   for I = 1:T - 1
     theta = archp + 0.5 * asymp + garchp;
-    k = tau(I) * 252;
+    k = inputData.tau(I) * 252;
 
     if I == 1
-      ra(I) = ret(I);   %LM(0) = 1
+      ra(I) = inputData.return(I);   %LM(0) = 1
     else
-      ra(I) = ret(I) / garchLeverageMultiplier(I - 1);
+      ra(I) = inputData.return(I) / garchLeverageMultiplier(I - 1);
     end
 
     assetVariance(I + 1) = omega + archp * (ra(I)^2) + ...
         asymp * (ra(I)^2) * (ra(I) < 0) + garchp * assetVariance(I);   %Tomorrow's asset variance forecast
 
-    if isDynamicForecast(forecastType)
+    if isDynamicForecast(inputData.forecastType)
       sigma_tk2 = (omega / (1 - theta)) * k - (omega / (1 - theta)) * ((1 - theta.^k) / (1 - theta)) + ...
           assetVariance(I + 1) * ((1 - theta.^k) / (1 - theta));
       if sigma_tk2 < 0
@@ -52,15 +52,15 @@ function [ ...
     end
 
     %%% Compute annualized asset volatility forecast %%%
-    annualizedForecastVol(I) = sqrt(sigma_tk2 / tau(I));
+    annualizedForecastVol(I) = sqrt(sigma_tk2 / inputData.tau(I));
 
     %%% Invert Black-Scholes to get asset to debt ratio %%%
     asset2Debt(I) = sgjr.assetFixedpoint( ...
-      1, riskFree(I), tau(I), sigma_tk2, ...
+      1, inputData.riskFree(I), inputData.tau(I), sigma_tk2, ...
       equity2Debt(I), (equity2Debt(I) + 1)/equity2Debt(I) ...
     );
     d1Contemp = (log(asset2Debt(I)) + ...
-                 (riskFree(I) * tau(I) + sigma_tk2 / 2)) / sqrt(sigma_tk2);
+                 (inputData.riskFree(I) * inputData.tau(I) + sigma_tk2 / 2)) / sqrt(sigma_tk2);
 
     deltaImplied(I) = 0.5 * erfc(-d1Contemp ./ sqrt(2));
 
@@ -69,14 +69,14 @@ function [ ...
     %% Compute analytical derivatives
     %Helpers for dLM
     vega = sgjr.fastBsVega( ...
-      asset2Debt(I), 1, riskFree(I), annualizedForecastVol(I), tau(I) ...
+      asset2Debt(I), 1, inputData.riskFree(I), annualizedForecastVol(I), inputData.tau(I) ...
     );
     assetSigmaA = -vega / deltaImplied(I);
 
-    d2 = d1Contemp - annualizedForecastVol(I) * sqrt(tau(I));
+    d2 = d1Contemp - annualizedForecastVol(I) * sqrt(inputData.tau(I));
     bsVanna = -sgjr.fastNormPdf(d1Contemp, 0, 1) * d2 / annualizedForecastVol(I);
     bsGamma = sgjr.fastNormPdf(d1Contemp, 0 , 1) / ...
-              (asset2Debt(I) * annualizedForecastVol(I) * sqrt(tau(I)));
+              (asset2Debt(I) * annualizedForecastVol(I) * sqrt(inputData.tau(I)));
     deltaSigmaA = bsGamma * assetSigmaA + bsVanna;
 
     preMultiply = phi * garchLeverageMultiplier(I) * ...
@@ -106,9 +106,9 @@ function [ ...
           garchp * dhaDTheta(I, 5);
     end
 
-    if isDynamicForecast(forecastType)
+    if isDynamicForecast(inputData.forecastType)
       %Compute long-run variance
-      lrv(I) = annualizedForecastVol(I)^2 * tau(I);
+      lrv(I) = annualizedForecastVol(I)^2 * inputData.tau(I);
 
       %Define some helper constants
       mtheta = 1 - theta;
@@ -126,7 +126,7 @@ function [ ...
       dlrvDBeta =  commonTerm + mratiok * dhaDTheta(I + 1, 4);
       dlrvDPhi = mratiok * dhaDTheta(I + 1, 5);
 
-      lrv_mult = 0.5 / sqrt(tau(I) * lrv(I));
+      lrv_mult = 0.5 / sqrt(inputData.tau(I) * lrv(I));
       dsigmaA_dtheta(I, 1) = lrv_mult * dlrvDOmega;
       dsigmaA_dtheta(I, 2) = lrv_mult * dlrvDAlpha;
       dsigmaA_dtheta(I, 3) = lrv_mult * dlrvDGamma;
