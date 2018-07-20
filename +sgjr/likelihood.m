@@ -1,7 +1,7 @@
 function [ ...
   llf, dLL_dtheta, lls, assetVariance, equityVolatility, smoothedBvDebt, mvEquityOut, ...
   garchLeverageMultiplier, asset2Debt, deltaImplied, annualizedForecastVol, tauOut] = ...
-  likelihood(parameters, ret, equity, debt, riskFree, tau, forecastType)
+  likelihood(parameters, inputData)
 % PURPOSE:
 %        Generate recursive asset volatility, equity volatility, and delta
 %        for Structural GARCH
@@ -43,8 +43,7 @@ function [ ...
 % esiriwar@stern.nyu.edu
 % Date: 3/15/2014
 
-  validateInput(parameters, ret, equity, debt, riskFree, tau, forecastType)
-  % validateInput(parameters, inputData);
+  validateInput(parameters, inputData);
 
   if ~isreal(parameters)
     assetVariance = [];
@@ -62,22 +61,17 @@ function [ ...
 
   %%% Smooth the debt %%%
   phi = 0.01;
-  % smoothedDebt = util.exponentiallySmooth(inputData.debt, phi);
-  smoothedDebt = util.exponentiallySmooth(debt, phi);
-  equity2debt = equity ./ smoothedDebt;
-  % equity2debt = inputData.equity ./ smoothedDebt;
+  smoothedDebt = util.exponentiallySmooth(inputData.debt, phi);
+  equity2debt = inputData.equity ./ smoothedDebt;
 
   %%% Truncate debt and equity for output - lagged so in T-1 info set %%%
   smoothedBvDebt = smoothedDebt(burnIndex - 1:end - 1);
-  mvEquityOut = equity(burnIndex - 1:end - 1);
-  tauOut = tau(burnIndex - 1:end - 1);
-  % mvEquityOut = inputData.equity(burnIndex - 1:end - 1);
-  % tauOut = inputData.tau(burnIndex - 1:end - 1);
+  mvEquityOut = inputData.equity(burnIndex - 1:end - 1);
+  tauOut = inputData.tau(burnIndex - 1:end - 1);
 
   %%% Generate equity and asset vol series %%%
   [assetVariance, garchLeverageMultiplier, asset2Debt, deltaImplied,annualizedForecastVol, ...
-   dLM_dtheta, dha_dtheta] = sgjr.core(parameters, ret, equity, debt, riskFree, tau, forecastType, equity2debt);
-  % dLM_dtheta, dha_dtheta] = sgjr.core(parameters, inputData, equity2debt);
+  dLM_dtheta, dha_dtheta] = sgjr.core(parameters, inputData, equity2debt);
 
   % This will be T-1 units long since t-1 garchLeverageMultiplier is used for time t volatility.
   equityVariance = (garchLeverageMultiplier(1:end - 1).^2) .* assetVariance(2:end);
@@ -88,10 +82,10 @@ function [ ...
   equityVariance = equityVariance(burnIndex - 1:end);
 
   %%% Likelihood calculation %%%
-  [lls, llf] = computeLikelihood(equityVariance, ret(burnIndex:end));
+  [lls, llf] = computeLikelihood(equityVariance, inputData.return(burnIndex:end));
 
   dLL_dtheta = computeDerivatives( ...
-    assetVariance, equityVariance, ret, ...
+    assetVariance, equityVariance, inputData.return, ...
     garchLeverageMultiplier, dLM_dtheta, dha_dtheta, burnIndex ...
   );
 
@@ -109,33 +103,30 @@ function [ ...
   equityVolatility = sqrt(252 * equityVariance);
 end
 
-function validateInput(parameters, ret, equity, debt, riskFree, tau, forecastType)
-% function validateInput(parameters, inputData)
+function validateInput(parameters, inputData)
   numParam = size(parameters, 1);
 
   if numParam ~= 5
     error('The number of input parameters should be 5');
   end
 
-  [numObs, numReturnCols] = size(ret);
-  % [numObs, numReturnCols] = size(inputData.return);
+  [numObs, numReturnCols] = size(inputData.return);
   if numReturnCols ~= 1
     error(['The return series should have col dim 1, but has col dim ' num2str(tmp)])
   end
 
-  numEquityObs = size(equity, 1);
-  % numEquityObs = size(inputData.equity, 1);
+  numEquityObs = size(inputData.equity, 1);
   if numEquityObs ~= numObs
     error('The market value of equity series and the return series should be the same dim');
   end
 
-  numDebtObs = size(debt);
+  numDebtObs = size(inputData.debt);
   if numDebtObs ~= numObs
     error('The book value of debt series and the return series should be the same dim');
   end
 
   try
-    [ret equity debt riskFree]; %#ok
+    [inputData.return inputData.equity inputData.debt inputData.riskFree]; %#ok
   catch
     error([ ...
       'The return, market value of equity, book value of debt, ' ...
