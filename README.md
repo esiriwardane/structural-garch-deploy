@@ -16,7 +16,7 @@ Then, in your MATLAB code, add the SGJR directory to your path and reference it 
 addpath(fullfile(pwd, 'sgjr'));
 load(fullfile(pwd, 'sgjr', testData));
 AIG_cell = struct2cell(AIG);
-result = sgjr(AIG{:}, zerocurve);
+result = sgjr(AIG_cell{:}, zerocurve);
 ```
 
 The call to the `sgjr` function will return an SGJR result object containing:
@@ -44,7 +44,7 @@ The call to the `sgjr` function will return an SGJR result object containing:
 You can also pass in a `forecastType` option to specify either a 'Constant' or 'Dynamic' forecast ('Constant' is the default).
 
 ```MATLAB
-result = sgjr(AIG{:}, zerocurve, forecastType, 'Dynamic');
+result = sgjr(AIG_cell{:}, zerocurve, forecastType, 'Dynamic');
 ```
 
 * Dataset required
