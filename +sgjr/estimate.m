@@ -37,12 +37,11 @@ function result = estimate(returnData, mvEquity, bvDebt, riskFreeRate, tau, fore
   optimizationOptions = createOptimizationOptions();
   startingParameters = getGarchStartingParameters(inputData.return);
 
-  % TODO -- populate the GJR coefficients in the result object
   problem = createOptimization(inputData, optimizationOptions, startingParameters);
   startingPoints = createStartingPoints();
   parameters = estimateSgjr(problem, startingPoints);
 
-  result = collectResults(parameters, inputData);
+  result = collectResults(parameters, inputData, startingParameters);
 end
 
 function validateInput(returnData, mvEquity, bvDebt, tau)
@@ -94,16 +93,9 @@ function options = createOptimizationOptions()
   options.sumB = [0 -0.01 0 0 0.995 0 10]';
 end
 
-%% TODO -- refactor this so that it works with new AND old MATLAB
-function starting = getGarchStartingParameters(returnData)
-  spec = garchset( 'Distribution' , 'Gaussian'  , 'P', 1, 'Q', 1,...
-                   'VarianceModel', 'GJR', 'Display','off');
-
-  [spec, ~, ~, ~, ~] = garchfit(spec, returnData * 100);
-
-
-  starting_GARCH = [spec.K / 100^2; spec.ARCH; spec.Leverage; spec.GARCH];
-  theta = spec.ARCH + 0.5 * spec.Leverage + spec.GARCH;
+function starting = getGarchStartingParameters(returnData, features)
+  garch = util.Garch();
+  [starting_GARCH, theta] = garch.getStartingParameters(returnData * 100);
 
   starting = [starting_GARCH; 1];
   if theta == 1
@@ -141,17 +133,18 @@ function parameters = estimateSgjr(problem, startingPoints)
   ms.UseParallel='always';
   ms.Display='off';
 
-  s = matlabpool('size');
-  if s==0
-    matlabpool open
+  pool = util.Pool();
+
+  if pool.isOpen()
     parameters = run(ms, problem, startingPoints);
-    matlabpool close
   else
+    pool.open();
     parameters = run(ms, problem, startingPoints);
+    pool.close();
   end
 end
 
-function results = collectResults(parameters, inputData)
+function results = collectResults(parameters, inputData, startingParameters)
   results = result.SGJRResult;
 
   results.parameters = parameters;
@@ -161,6 +154,7 @@ function results = collectResults(parameters, inputData)
     results.deltaImplied, results.volatilityForecast, results.tau ...
   ] = sgjr.likelihood(parameters, inputData);
 
+  results.gjr = startingParameters(1:end - 1);
   results.logLikelihood = LL * -1;
   results.equityVariance = (sigma_eAnn.^2) / 252;
 

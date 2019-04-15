@@ -28,12 +28,6 @@ function result = sgjr( ...
   %    result            - An SGJRResult object
   %
   % SEE ALSO:  result/SGJRResult
-  originalWarningState = warning ('off','econ:garchfit:FunctionToBeRemoved');
-  warning ('off','econ:garchset:FunctionToBeRemoved');
-  warning ('off','econ:garchinfer:FunctionToBeRemoved');
-  warning ('off','econ:garchpred:FunctionToBeRemoved');
-
-  c1 = onCleanup(@() restoreWarningState(originalWarningState));
 
   % TODO - ask Emil the format of zero curve data
   options = processOptions(varargin{:});
@@ -93,10 +87,4 @@ function smoothedTau = createSmoothedTau(bvDebtComponents, debtMaturities)
 
   rawTau = sum(repmat(debtMaturities, T, 1) .* dWeights, 2);
   smoothedTau = util.exponentiallySmooth(rawTau, 0.01);
-end
-
-function restoreWarningState(originalWarningState)
-  if (~isempty(originalWarningState))
-    warning(originalWarningState);
-  end
 end
