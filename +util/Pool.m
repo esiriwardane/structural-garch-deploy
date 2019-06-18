@@ -14,8 +14,7 @@ classdef Pool
 
     function TF = hasMatlabPool(obj)
       try
-        matlabpool;
-        matlabpool close;
+        matlabpool('size');
         TF = true;
       catch ME
         if strcmp(ME.message, 'Undefined function or variable ''matlabpool''.')
