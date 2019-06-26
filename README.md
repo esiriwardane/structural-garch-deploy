@@ -1,6 +1,6 @@
 # Structural GARCH Code
 
-This MATLAB package is used to estimate the Structural GJR-GARCH (SGJR) model from the Engle and Siriwardane paper [Structural GARCH: The Volatility-Leverage Connection](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2596622).
+This MATLAB package is used to estimate the Structural GJR-GARCH (SGJR) model from the Engle and Siriwardane paper [Structural GARCH: The Volatility-Leverage Connection](https://academic.oup.com/rfs/article-abstract/31/2/449/4139801?redirectedFrom=fulltext).
 
 ## Running the Code
 Clone this repository into your MATLAB working directory:
