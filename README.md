@@ -7,14 +7,14 @@ Clone this repository into your MATLAB working directory:
 
 ```bash
 cd /home/user/projects/project/using/SGJR/
-git clone [repository URI]  # creates an 'sgjr' directory in your working directory
+git clone [repository URI] ./sgjr  # creates an 'sgjr' directory in your working directory
 ```
 
 Then, in your MATLAB code, add the SGJR directory to your path and reference it using the `sgjr.` prefix.
 
 ```MATLAB
 addpath(fullfile(pwd, 'sgjr'));
-load(fullfile(pwd, 'sgjr', testData));
+load(fullfile(pwd, 'sgjr', 'testData.mat'));
 AIG_cell = struct2cell(AIG);
 result = sgjr(AIG_cell{:}, zerocurve);
 ```
