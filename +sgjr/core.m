@@ -23,7 +23,7 @@ function [ ...
   lrVarOption = longRunVar * 252 * inputData.tau;
   assetVariance = longRunVar * ones(T, 1);
 
-  if longRunVar < 0 || isreal(longRunVar)==0
+  if longRunVar < 0 || isreal(longRunVar) == 0
     return
   end
 

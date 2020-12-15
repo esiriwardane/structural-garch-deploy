@@ -97,7 +97,7 @@ function fx = evaluateFunction(price, strike, riskFreeRate, time, volatility, su
 end
 
 function dx = determineDx(x)
-  if x ~= 0,
+  if x ~= 0
     dx = x/50;
   else
     dx = 1/50;
@@ -166,7 +166,7 @@ function [d, e] = interpolateValue(m, assetFp, a, c, d, e, fa, fb, fc, toler)
     [p, q] = linearInterpolation(s, m);
   else
     [p, q] = inverseQuadraticInterpolation(s, m, assetFp, a, fa, fb, fc);
-  end;
+  end
 
   if p > 0
     q = -q;
