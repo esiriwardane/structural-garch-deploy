@@ -39,6 +39,8 @@ The call to the `sgjr` function will return an SGJR result object containing:
 * tau - TODO - define
 * gjr - Parameters from estimation of a GJR-GARCH regression on the returns provided
 
+The burn_index parameter refers to the initial number of observations that are discarded when computing the likelihood function used for the optimization. This is done to minimize dependence on initial conditions.
+
 #### Options
 
 You can also pass in a `forecastType` option to specify either a 'Constant' or 'Dynamic' forecast ('Constant' is the default).
