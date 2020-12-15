@@ -26,16 +26,16 @@ The call to the `sgjr` function will return an SGJR result object containing:
 * stdErrorsMLE - MLE standard errors
 * stdErrorsQMLE - QMLE standard errors
 * equityVariance - daily equity variance
-* assetVariance - (T - burn_index) x 1 series of asset variances            # TODO: What is burn_index?
-* leverageMultiplier - (T - burn_index) x 1 series of leverage multiplier   # TODO: What is burn_index?
+* assetVariance - (T - burn_index) x 1 series of asset variances            
+* leverageMultiplier - (T - burn_index) x 1 series of leverage multiplier   
 * loglikelihood - log-likelihood at optimum
 * BIC - Bayes Information Criterion
 * numRuns - number of different starting parameters
-* smoothedBvDebt - (T - burn_index) x 1 series of smoothed bvdebt          # TODO: What is burn_index?
-* mvEquity - (T - burn_index) x 1 series of market value of equity         # TODO: What is burn_index?
-* asset2Debt - (T - burn_index) x 1 series of B-S asset to debt series     # TODO: What is burn_index?
-* deltaImplied - (T - burn_index) x 1 series of B-S delta                  # TODO: What is burn_index?
-* volatilityForecast - (T - burn_index) x 1 series of asset forecast vol   # TODO: What is burn_index?
+* smoothedBvDebt - (T - burn_index) x 1 series of smoothed bvdebt          
+* mvEquity - (T - burn_index) x 1 series of market value of equity         
+* asset2Debt - (T - burn_index) x 1 series of B-S asset to debt series     
+* deltaImplied - (T - burn_index) x 1 series of B-S delta                  
+* volatilityForecast - (T - burn_index) x 1 series of asset forecast vol   
 * tau - TODO - define
 * gjr - Parameters from estimation of a GJR-GARCH regression on the returns provided
 
