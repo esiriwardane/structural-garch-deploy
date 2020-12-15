@@ -46,7 +46,3 @@ You can also pass in a `forecastType` option to specify either a 'Constant' or '
 ```MATLAB
 result = sgjr(AIG_cell{:}, zerocurve, forecastType, 'Dynamic');
 ```
-
-* Dataset required
-
-## Theory
