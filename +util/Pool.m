@@ -17,7 +17,8 @@ classdef Pool
         matlabpool('size');
         TF = true;
       catch ME
-        if strcmp(ME.message, 'Undefined function or variable ''matlabpool''.')
+        if strcmp(ME.message, 'Undefined function or variable ''matlabpool''.') || ...
+            strcmp(ME.message, 'Undefined function ''matlabpool'' for input arguments of type ''char''.')
           TF = false;
         else
           rethrow(ME);

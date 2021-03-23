@@ -27,7 +27,8 @@ classdef Garch
         garchspec();
         TF= true;
       catch ME
-        if strcmp(ME.message, 'Undefined function or variable ''garchspec''.')
+        if strcmp(ME.message, 'Undefined function or variable ''garchspec''.') || ...
+            strcmp(ME.message, 'Unrecognized function or variable ''garchspec''.')
           TF = false;
         else
           rethrow(ME);
